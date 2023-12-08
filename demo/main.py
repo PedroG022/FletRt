@@ -1,15 +1,20 @@
 import flet as ft
-from fletrt import Router
 
 from page_a import PageA
 from page_b import PageB
+from page_c import PageC
+
+from fletrt import Router
 
 
 def main(page: ft.Page):
-    Router(page, routes={
-        '/page-a': PageA(),
-        '/page-b': PageB()
-    }, starting_route='/page-a')
+    router = Router(page=page, routes={
+        '/': PageA(),
+        '/b': PageB(),
+        '/b/c': PageC()
+    })
+
+    router.install()
 
 
-ft.app(target=main)
+ft.app(target=main, view=ft.WEB_BROWSER, port=40444)

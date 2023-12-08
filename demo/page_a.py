@@ -1,14 +1,13 @@
 import flet as ft
-from fletrt import RouteView
+
+from fletrt import Route
 
 
-class PageA(RouteView):
-    def body(self) -> ft.Container:
-        return ft.Container(
-            ft.Column(
-                controls=[
-                    ft.Text("Hello World, from Page A!"),
-                    ft.ElevatedButton("Go to Page B", on_click=lambda _: self._page.go('/page-b'))
-                ]
-            )
+class PageA(Route):
+    def body(self):
+        return ft.Column(
+            controls=[
+                ft.ElevatedButton('Page B', on_click=lambda _: self.page.go('/b')),
+                ft.ElevatedButton('Page C', on_click=lambda _: self.page.go('/b/c'))
+            ]
         )

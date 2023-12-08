@@ -1,45 +1,71 @@
-from flet import Container, Page
-from fletrt.route_view import RouteView
+from flet import Page, View
+from flet import RouteChangeEvent
+
+from fletrt import Route
+from fletrt.templates import NotFound
 
 
 class Router:
+
+    # Initialize the router
     def __init__(self, page: Page, routes: dict, starting_route: str = '/'):
-        self.page = page
-        self.routes = routes
+        self.page: Page = page
 
+        # Intercepts not found pages
+        routes['/404'] = NotFound()
+
+        # Sets variables that will be used
+        self.routes_dict: dict = routes
+        self.routes_path = [path for path in self.routes_dict.keys()]
+        self.starting_route: str = starting_route
+
+    # Sets the router to intercept the page changes
+    def install(self):
         self.page.on_route_change = self.on_route_change
+        self.page.route = self.starting_route
+        self.page.go(self.page.route)
 
-        for route in routes:
-            route_view: RouteView = routes.get(route)
-            route_view.set_page(page)
+    # Initialize the route variables
+    def initialize_route(self, route: Route, path: str):
+        if not route.initialized:
+            route.page = self.page
+            route.path = path
 
-        self.current_route: RouteView = self.routes[starting_route]
-        self.init_components()
+            route.pop = self.pop_route
 
-        self.body = Container(self.current_route.body())
-        self.page.add(self.body)
+            route.initialized = True
 
-    def on_route_change(self, route):
-        self.current_route: RouteView = self.routes[route.route]
+    def pop_route(self):
+        last_route = self.past_routes()[-2]
+        self.page.go(last_route)
 
-        self.reset_page()
-        self.init_components()
+    def on_route_change(self, e: RouteChangeEvent):
+        self.page.views.clear()
 
-        self.body.content = self.current_route.body()
-        self.body.update()
+        if not self.validate_route():
+            return
 
-    def init_components(self):
-        navigation_bar = self.current_route.navigation_bar()
-        appbar = self.current_route.app_bar()
+        target_route: Route = self.routes_dict.get(e.route)
+        self.initialize_route(target_route, e.route)
 
-        if navigation_bar is not None:
-            self.page.navigation_bar = navigation_bar
+        target_route_view: View = target_route.view()
 
-        if appbar is not None:
-            self.page.appbar = appbar
+        self.page.views.append(target_route_view)
+        self.page.update()
 
-    def reset_page(self):
-        self.page.navigation_bar = None
-        self.page.window_progress_bar = None
-        self.page.appbar = None
-        self.page.splash = None
+    # Checks if the route that's being navigated to
+    # exists. If not, return a 404 Not Found page.
+    def validate_route(self):
+        if self.page.route not in self.routes_path:
+            self.page.go('/404')
+            return False
+        return True
+
+    def past_routes(self):
+        return [f'/{path}' for path in self.page.route.split('/')]
+
+    def debug(self):
+        print('> Debug')
+        print(f'\troutesPath: {self.routes_path}')
+        print(f'\troutesDict: {self.routes_dict}')
+        print(f'\tstartingRoute: {self.starting_route}')

@@ -31,8 +31,8 @@ pip install fletrt
 import flet as ft
 from fletrt import Router
 
-from page_a import PageA
-from page_b import PageB
+from demo.page_a import PageA
+from demo.page_b import PageB
 
 
 def main(page: ft.Page):
