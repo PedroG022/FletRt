@@ -10,6 +10,9 @@ class Route:
     def pop(self):
         pass
 
+    def go(self, route):
+        pass
+
     def body(self) -> Control:
         pass
 

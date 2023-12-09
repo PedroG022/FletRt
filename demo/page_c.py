@@ -9,7 +9,7 @@ class PageC(Route):
         return ft.Column(
             controls=[
                 ft.ElevatedButton('Page B', on_click=lambda _: self.pop()),
-                ft.ElevatedButton('Page A', on_click=lambda _: self.page.go('/'))
+                ft.ElevatedButton('Page A', on_click=lambda _: self.go('/'))
             ]
         )
 

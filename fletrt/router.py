@@ -31,13 +31,17 @@ class Router:
             route.page = self.page
             route.path = path
 
-            route.pop = self.pop_route
+            route.pop = self.route_pop
+            route.go = self.route_go
 
             route.initialized = True
 
-    def pop_route(self):
+    def route_pop(self):
         last_route = self.past_routes()[-2]
         self.page.go(last_route)
+
+    def route_go(self, route):
+        self.page.go(route)
 
     def on_route_change(self, e: RouteChangeEvent):
         self.page.views.clear()
