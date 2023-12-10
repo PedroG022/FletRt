@@ -5,6 +5,9 @@ class Route:
     def __init__(self):
         self.page: Page = None
         self.path: str = None
+
+        self.route_params: dict = None
+
         self.initialized = False
 
     def pop(self):
