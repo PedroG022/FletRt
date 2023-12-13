@@ -7,13 +7,14 @@ class Route:
         self.path: str = None
 
         self.route_params: dict = None
+        self.route_data: dict = None
 
         self.initialized = False
 
     def pop(self):
         pass
 
-    def go(self, route):
+    def go(self, target_route_path: str, target_route_data: dict = None):
         pass
 
     def body(self) -> Control:
