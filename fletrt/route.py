@@ -14,7 +14,7 @@ class Route:
     def pop(self):
         pass
 
-    def go(self, target_route_path: str, target_route_data: dict = None):
+    def go(self, route_path: str, data: dict = None):
         pass
 
     def body(self) -> Control:

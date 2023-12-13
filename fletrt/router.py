@@ -4,8 +4,6 @@ from flet import RouteChangeEvent, TemplateRoute
 from fletrt import Route
 from fletrt.templates import NotFound
 
-import inspect
-
 
 class Router:
 
@@ -28,9 +26,9 @@ class Router:
         self.__page.go(self.__page.route)
 
     # Initialize the route essential variables
-    def __initialize_route(self, route: Route, path: str):
+    def __initialize_route(self, route: Route, route_path: str):
         route.page = self.__page
-        route.path = path
+        route.path = route_path
 
         route.pop = self.__route_pop
         route.go = self.__route_go
@@ -43,25 +41,30 @@ class Router:
         self.__page.go(last_route)
 
     # Wrapper for the page.go function
-    def __route_go(self, target_route_path, target_route_data: dict = None):
-        print('route_go', target_route_path, target_route_data)
+    def __route_go(self, route_path: str, route_data: dict = None):
+        template_path = route_path
 
-        template_route = self.__template_from_path(target_route_path)
+        if self.__route_match_template(route_path):
+            template_path = self.__template_from_path(route_path)
 
-        if template_route:
-            target_route: Route = self.__routes_dict[template_route]
-            target_route.route_data = target_route_data
+        target_route: Route = self.__routes_dict[template_path]
+        target_route.route_data = route_data
+        self.__routes_dict[route_path] = target_route
 
-            self.__routes_dict[target_route_path] = target_route
+        self.__page.go(route_path)
 
-        self.__page.go(target_route_path)
+    def __route_match_template(self, route_path: str) -> bool:
+        template_route = TemplateRoute(route_path)
+
+        for template in [key for key in self.__routes_dict.keys() if ':' in key]:
+            if template_route.match(template):
+                return True
+
+        return False
 
     # Gets the matching path for an url, even
     # if is a template (e.g: /users/:id)
     def __template_from_path(self, route_path: str):
-        cal = inspect.getouterframes(inspect.currentframe(), 2)[1][3]
-        print('template_from_path', route_path, cal)
-
         template_route = TemplateRoute(route_path)
 
         for template_route_path in self.__route_paths:
@@ -71,8 +74,6 @@ class Router:
         return None
 
     def __route_params(self, route_path: str):
-        print('route_params')
-
         path_template = self.__template_from_path(route_path)
 
         if path_template:
@@ -93,20 +94,19 @@ class Router:
         return None
 
     def __get_route(self):
-        path = self.__page.route
-        template_path = self.__template_from_path(self.__page.route)
+        route_path = self.__page.route
 
         params = None
 
-        if template_path:
-            path = template_path
+        if self.__route_match_template(self.__page.route):
+            route_path = self.__template_from_path(self.__page.route)
             params = self.__route_params(self.__page.route)
 
-        if path not in self.__route_paths:
+        if route_path not in self.__route_paths:
             self.__page.go('/404')
             return None, None
 
-        return path, params
+        return route_path, params
 
     # Wrapper for the route change event, that allows passing data
     # to the target page
