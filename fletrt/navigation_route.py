@@ -2,7 +2,7 @@ from flet_core import View
 
 from fletrt import Route
 
-from flet import NavigationBar, NavigationDrawer, FloatingActionButton, AppBar, ControlEvent
+from flet import NavigationBar, ControlEvent
 
 from fletrt.utils import get_navigation_destinations
 
@@ -14,18 +14,6 @@ class NavigationRoute(Route):
         self.navigation_bar = self.navigation_bar()
 
     def navigation_bar(self) -> (NavigationBar, list):
-        pass
-
-    def drawer(self) -> NavigationDrawer:
-        pass
-
-    def end_drawer(self) -> NavigationDrawer:
-        pass
-
-    def floating_action_button(self) -> FloatingActionButton:
-        pass
-
-    def app_bar(self) -> AppBar:
         pass
 
     def on_navigation_bar_change(self, event: ControlEvent, destinations: list):
@@ -42,9 +30,5 @@ class NavigationRoute(Route):
             navigation_bar.on_change = lambda e: self.on_navigation_bar_change(e, destinations)
 
         base.navigation_bar = navigation_bar
-        base.floating_action_button = self.floating_action_button()
-        base.appbar = self.app_bar()
-        base.drawer = self.drawer()
-        base.end_drawer = self.end_drawer()
 
         return base
