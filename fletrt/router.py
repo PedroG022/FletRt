@@ -1,8 +1,9 @@
 from flet import Page, View
 from flet import RouteChangeEvent, TemplateRoute
 
-from fletrt import Route
+from fletrt import Route, NavigationRoute
 from fletrt.templates import NotFound
+from fletrt.utils import get_navigation_destinations
 
 
 class Router:
@@ -18,6 +19,8 @@ class Router:
         self.__routes_dict: dict = routes
         self.__route_paths = [path for path in self.__routes_dict.keys()]
         self.__starting_route: str = starting_route
+
+        self.__dependant_routes: dict = {}
 
     # Sets the router to intercept the page changes
     def install(self):
@@ -62,8 +65,7 @@ class Router:
 
         return False
 
-    # Gets the matching path for an url, even
-    # if is a template (e.g: /users/:id)
+    # Gets the matching template for an url
     def __template_from_path(self, route_path: str):
         template_route = TemplateRoute(route_path)
 
@@ -73,7 +75,8 @@ class Router:
 
         return None
 
-    def __route_params(self, route_path: str):
+    # Gets the parameters that are included in a route path
+    def __route_params(self, route_path: str) -> dict:
         path_template = self.__template_from_path(route_path)
 
         if path_template:
@@ -93,7 +96,9 @@ class Router:
 
         return None
 
-    def __get_route(self):
+    # Returns the route template path and the route params,
+    # if the route contains params.
+    def __get_route(self) -> (str, dict):
         route_path = self.__page.route
 
         params = None
@@ -108,26 +113,78 @@ class Router:
 
         return route_path, params
 
+    # Pushes the route's view to the page views list
+    def __present_route(self, target_route: Route):
+        self.__page.views.clear()
+
+        target_route_view: View = target_route.view()
+        target_route.route_data = None
+
+        self.__page.views.append(target_route_view)
+        self.__page.update()
+
+    def __replace_body(self, target_route: Route):
+        # TODO: Find a way to pass the view arguments to the view, or pass the navigation bar to the page instead of the view
+        self.__page.views[-1].controls = target_route.view().controls
+        self.__page.update()
+
     # Wrapper for the route change event, that allows passing data
     # to the target page
     def __on_route_change(self, route_change_event: RouteChangeEvent):
-        self.__page.views.clear()
-
         target_route_path, target_route_params = self.__get_route()
 
         if target_route_path:
+            print('\t> Found route match')
             target_route: Route = self.__routes_dict.get(target_route_path)
 
             if not target_route.initialized:
+                print('\t> Route not initialized, initializing...')
                 self.__initialize_route(target_route, target_route_path)
 
             target_route.route_params = target_route_params
 
-            target_route_view: View = target_route.view()
-            target_route.route_data = None
+            # Checks if the route have sub-routes, for cases like
+            # the NavigationRoute, where the parent view must be rendered
+            # before the subpages are rendered
+            if isinstance(target_route, NavigationRoute):
+                print('\t> Instance of a navigation route')
+                dependant = get_navigation_destinations(target_route.path, target_route.navigation_bar)
 
-            self.__page.views.append(target_route_view)
-            self.__page.update()
+                for dependant_route in dependant:
+                    self.__dependant_routes[dependant_route] = target_route_path
+
+            # Checks whether the target route is a children of a navigation
+            # route. If it is, it will render
+            if target_route_path in self.__dependant_routes.keys():
+                print('\t> Route is a navigation child')
+
+                # Check if the root navigation route was already rendered
+                if target_route.route_data and target_route.route_data.get('keep'):
+                    print('\t> Signal to keep root')
+                    self.__replace_body(target_route)
+                    target_route.route_data = None
+                    return
+
+                print('\t> Building target route root')
+
+                self.__page.views.clear()
+
+                root_route_path = self.__dependant_routes[target_route_path]
+                root_route: NavigationRoute = self.__routes_dict.get(root_route_path)
+
+                self.__page.views.append(root_route.view())
+                self.__page.views[-1].controls = [target_route.body()]
+
+                # Gets the navigation bar target index
+                dependant = get_navigation_destinations(root_route.path, root_route.navigation_bar)
+                index = dependant.index(target_route_path)
+
+                target_route.route_data = None
+                self.__page.views[-1].navigation_bar.selected_index = index
+                self.__page.update()
+                return
+
+            self.__present_route(target_route)
 
     def __past_routes(self):
         return [f'/{path}' for path in self.__page.route.split('/')]

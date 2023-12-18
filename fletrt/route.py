@@ -1,4 +1,4 @@
-from flet import Page, View, Control
+from flet import Page, View, Control, Column
 
 
 class Route:
@@ -18,7 +18,7 @@ class Route:
         pass
 
     def body(self) -> Control:
-        pass
+        return Column()
 
     def view(self) -> View:
         return View(self.path, controls=[

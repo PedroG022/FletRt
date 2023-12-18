@@ -1,17 +1,17 @@
 import flet as ft
 
-from page_a import PageA
-from page_b import PageB
-from page_c import PageC
+from page_index import Index
+from page_home import Home
+from page_settings import Settings
 
 from fletrt import Router
 
 
 def main(page: ft.Page):
     router = Router(page=page, routes={
-        '/': PageA(),
-        '/b': PageB(),
-        '/b/c': PageC()
+        '/': Index(),
+        '/home': Home(),
+        '/settings': Settings()
     })
 
     router.install()
