@@ -9,8 +9,8 @@ repository = "https://github.com/pedrog022/fletrt"
 keywords = ["flet", "routing"]
 
 [tool.poetry.dependencies]
-python = "^3.11"
-flet = "^0.12.2"
+python = "^3.7"
+flet = "^0.17.0"
 
 
 [tool.poetry.group.dev.dependencies]
