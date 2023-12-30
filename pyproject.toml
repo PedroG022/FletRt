@@ -10,7 +10,7 @@ keywords = ["flet", "routing"]
 
 [tool.poetry.dependencies]
 python = "^3.7"
-flet = "^0.17.0"
+flet = "^0.18.0"
 
 
 [tool.poetry.group.dev.dependencies]
