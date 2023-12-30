@@ -25,7 +25,6 @@ class Router:
     # Sets the router to intercept the page changes
     def install(self):
         self.__page.on_route_change = self.__on_route_change
-        self.__page.route = self.__starting_route
         self.__page.go(self.__page.route)
 
     # Initialize the route essential variables
