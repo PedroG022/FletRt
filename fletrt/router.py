@@ -137,7 +137,11 @@ class Router:
     # Change the current page's body to the current route's body
     def __present_body(self, target_route: Route):
         # TODO: Find a way to pass the view arguments to the view, or pass the navigation bar to the page instead of the view
-        self.__page.views[-1].controls = target_route.view().controls
+        target_view: View = self.__page.views[-1]
+
+        self.__copy_properties(target_route.view(), target_view)
+
+        target_view.controls = target_route.view().controls
         self.__page.update()
 
         target_route.route_data = None
@@ -160,6 +164,13 @@ class Router:
         self.__page.update()
 
         target_route.route_data = None
+
+    def __copy_properties(self, source: View, target: View):
+        target.vertical_alignment = source.vertical_alignment
+        target.horizontal_alignment = source.horizontal_alignment
+        target.padding = source.padding
+        target.auto_scroll = source.auto_scroll
+        target.bgcolor = source.bgcolor
 
     # Wrapper for the route change event, that allows passing data to the target page
     def __on_route_change(self, route_change_event: RouteChangeEvent):
