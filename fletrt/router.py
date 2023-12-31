@@ -182,7 +182,7 @@ class Router:
         target_route: Route = self.__routes_dict.get(target_route_path)
 
         # Checks if the target route has been initialized.
-        target_route.parameters = target_route_params
+        target_route.route_params = target_route_params
 
         # Checks whether the target route is a navigation root
         # if it is, it will render the first page

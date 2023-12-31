@@ -9,8 +9,6 @@ class Route:
         self.route_params: dict = None
         self.route_data: dict = None
 
-        self.initialized = False
-
     def pop(self):
         pass
 
