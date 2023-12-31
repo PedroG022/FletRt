@@ -184,6 +184,17 @@ class Router:
         if not target_route.initialized:
             self.__initialize_route(target_route, target_route_path, target_route_params)
 
+        # Checks whether the target route is a navigation root
+        # if it is, it will render the first page
+        if target_route_path in self.__parent_routes.values():
+            target_route: NavigationRoute
+
+            destinations = get_navigation_destinations(target_route_path, target_route.navigation_bar)
+            first_route = destinations[0]
+
+            self.__page.go(first_route)
+            return
+
         # Checks whether the target route is a children of a NavigationRoute.
         # If not, it will render the page normally
         if target_route_path not in self.__parent_routes.keys():
