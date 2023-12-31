@@ -107,9 +107,7 @@ class Router:
 
     # Returns the route template path and
     # the route params, if the route contains params.
-    def __get_route(self) -> (str, dict):
-        route_path = self.__page.route
-
+    def __get_route(self, route_path: str) -> (str, dict):
         params = None
 
         if self.__route_match_template(self.__page.route):
@@ -173,7 +171,7 @@ class Router:
 
     # Wrapper for the route change event, that allows passing data to the target page
     def __on_route_change(self, route_change_event: RouteChangeEvent):
-        target_route_path, target_route_params = self.__get_route()
+        target_route_path, target_route_params = self.__get_route(route_change_event.route)
 
         if not target_route_path:
             self.__page.go('/404')
