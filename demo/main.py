@@ -1,15 +1,22 @@
 import flet as ft
-from fletrt import Router
 
-from page_a import PageA
-from page_b import PageB
+from page_index import Index
+from page_home import Home
+from page_settings import Settings
+from page_content import Content
+
+from fletrt import Router
 
 
 def main(page: ft.Page):
-    Router(page, routes={
-        '/page-a': PageA(),
-        '/page-b': PageB()
-    }, starting_route='/page-a')
+    router = Router(page=page, routes={
+        '/': Index(),
+        '/home': Home(),
+        '/home/:content': Content(),
+        '/settings': Settings(),
+    })
+
+    router.install()
 
 
-ft.app(target=main)
+ft.app(target=main, view=ft.WEB_BROWSER, port=40444)
