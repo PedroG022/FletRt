@@ -154,6 +154,7 @@ class Router:
         self.__present_route(root_route)
 
         self.__page.views[-1].controls = [target_route.body()]
+        self.__copy_properties(target_route.view(), self.__page.views[-1])
 
         # Gets the navigation bar target index
         dependant = get_navigation_destinations(root_route.path, root_route.navigation_bar)
