@@ -21,32 +21,31 @@ class Router:
         self.__starting_route: str = starting_route
 
         self.__parent_routes: dict = {}
+        self.__initialize_routes()
 
     # Sets the router to intercept the page changes
     def install(self):
         self.__page.on_route_change = self.__on_route_change
         self.__page.go(self.__page.route)
 
-    # Initialize the route essential variables
-    def __initialize_route(self, route: Route, route_path: str, route_params: dict = None):
-        route.page = self.__page
-        route.path = route_path
+    def __initialize_routes(self):
+        for route_path in self.__routes_dict.keys():
+            route = self.__routes_dict[route_path]
 
-        route.route_params = route_params
+            route.page = self.__page
+            route.path = route_path
 
-        route.pop = self.__route_pop
-        route.go = self.__route_go
+            route.pop = self.__route_pop
+            route.go = self.__route_go
 
-        # Checks if the route have sub-routes, for cases like
-        # the NavigationRoute, where the parent view must be rendered
-        # before the subpages are rendered
-        if isinstance(route, NavigationRoute):
-            dependant = get_navigation_destinations(route.path, route.navigation_bar)
+            # Checks if the route have sub-routes, for cases like
+            # the NavigationRoute, where the parent view must be rendered
+            # before the subpages are rendered
+            if isinstance(route, NavigationRoute):
+                dependant = get_navigation_destinations(route.path, route.navigation_bar)
 
-            for dependant_route in dependant:
-                self.__parent_routes[dependant_route] = route.path
-
-        route.initialized = True
+                for dependant_route in dependant:
+                    self.__parent_routes[dependant_route] = route.path
 
     # Alternative to the page.views.pop function
     def __route_pop(self):
@@ -182,8 +181,8 @@ class Router:
 
         target_route: Route = self.__routes_dict.get(target_route_path)
 
-        if not target_route.initialized:
-            self.__initialize_route(target_route, target_route_path, target_route_params)
+        # Checks if the target route has been initialized.
+        target_route.parameters = target_route_params
 
         # Checks whether the target route is a navigation root
         # if it is, it will render the first page
