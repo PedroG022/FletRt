@@ -3,6 +3,7 @@ import flet as ft
 from page_index import Index
 from page_home import Home
 from page_settings import Settings
+from page_content import Content
 
 from fletrt import Router
 
@@ -11,7 +12,8 @@ def main(page: ft.Page):
     router = Router(page=page, routes={
         '/': Index(),
         '/home': Home(),
-        '/settings': Settings()
+        '/home/:content': Content(),
+        '/settings': Settings(),
     })
 
     router.install()

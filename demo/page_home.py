@@ -6,9 +6,16 @@ from fletrt import Route
 
 class Home(Route):
     def body(self):
+        content = ft.TextField(hint_text='Type anything...')
+        confirm = ft.ElevatedButton('Go to next page with url parameters',
+                                    on_click=lambda _: self.go('/home/' + content.value))
+
         return ft.Column(
+            alignment=ft.MainAxisAlignment.CENTER,
+            horizontal_alignment=ft.CrossAxisAlignment.CENTER,
             controls=[
-                ft.Text('Home', size=100)
+                content,
+                confirm
             ]
         )
 
