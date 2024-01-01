@@ -9,11 +9,11 @@ from fletrt.utils import get_navigation_destinations
 class Router:
 
     # Initialize the router
-    def __init__(self, page: Page, routes: dict, starting_route: str = '/'):
+    def __init__(self, page: Page, routes: dict, not_found_route: Route = NotFound()):
         self.__page: Page = page
 
         # Intercepts not found pages
-        routes['/404'] = NotFound()
+        routes['/404'] = not_found_route
 
         # Sets variables that will be used
         self.__routes_dict: dict = routes
