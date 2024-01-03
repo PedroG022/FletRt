@@ -3,22 +3,22 @@ from flet import RouteChangeEvent, TemplateRoute
 
 from fletrt import Route, NavigationRoute
 from fletrt.templates import NotFound
-from fletrt.utils import get_navigation_destinations
+
+from typing import Optional
 
 
 class Router:
 
     # Initialize the router
-    def __init__(self, page: Page, routes: dict, starting_route: str = '/'):
+    def __init__(self, page: Page, routes: dict, not_found_route: Route = NotFound()):
         self.__page: Page = page
 
         # Intercepts not found pages
-        routes['/404'] = NotFound()
+        routes['/404'] = not_found_route
 
         # Sets variables that will be used
         self.__routes_dict: dict = routes
         self.__route_paths = [path for path in self.__routes_dict.keys()]
-        self.__starting_route: str = starting_route
 
         self.__parent_routes: dict = {}
         self.__initialize_routes()
@@ -42,7 +42,7 @@ class Router:
             # the NavigationRoute, where the parent view must be rendered
             # before the subpages are rendered
             if isinstance(route, NavigationRoute):
-                dependant = get_navigation_destinations(route.path, route.navigation_bar)
+                dependant = route.destinations
 
                 for dependant_route in dependant:
                     self.__parent_routes[dependant_route] = route.path
@@ -85,7 +85,7 @@ class Router:
         return None
 
     # Gets the parameters that are included in a route path
-    def __route_params(self, route_path: str) -> dict:
+    def __route_params(self, route_path: str) -> Optional[dict]:
         path_template = self.__template_from_path(route_path)
 
         if path_template:
@@ -132,7 +132,8 @@ class Router:
 
     # Change the current page's body to the current route's body
     def __present_body(self, target_route: Route):
-        # TODO: Find a way to pass the view arguments to the view, or pass the navigation bar to the page instead of the view
+        # TODO: Find a way to pass the view arguments to the view, or pass the navigation bar to the page instead of
+        #  the view
         target_view: View = self.__page.views[-1]
 
         self.__copy_properties(target_route.view(), target_view)
@@ -154,7 +155,7 @@ class Router:
         self.__copy_properties(target_route.view(), self.__page.views[-1])
 
         # Gets the navigation bar target index
-        dependant = get_navigation_destinations(root_route.path, root_route.navigation_bar)
+        dependant = root_route.destinations
         index = dependant.index(target_route_path)
 
         self.__page.views[-1].navigation_bar.selected_index = index
@@ -162,7 +163,8 @@ class Router:
 
         target_route.route_data = None
 
-    def __copy_properties(self, source: View, target: View):
+    @staticmethod
+    def __copy_properties(source: View, target: View):
         target.vertical_alignment = source.vertical_alignment
         target.horizontal_alignment = source.horizontal_alignment
         target.padding = source.padding
@@ -187,7 +189,7 @@ class Router:
         if target_route_path in self.__parent_routes.values():
             target_route: NavigationRoute
 
-            destinations = get_navigation_destinations(target_route_path, target_route.navigation_bar)
+            destinations = target_route.destinations
             first_route = destinations[0]
 
             self.__page.go(first_route)
