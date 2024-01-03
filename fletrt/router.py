@@ -5,6 +5,8 @@ from fletrt import Route, NavigationRoute
 from fletrt.templates import NotFound
 from fletrt.utils import get_navigation_destinations
 
+from typing import Optional
+
 
 class Router:
 
@@ -18,7 +20,6 @@ class Router:
         # Sets variables that will be used
         self.__routes_dict: dict = routes
         self.__route_paths = [path for path in self.__routes_dict.keys()]
-        self.__starting_route: str = starting_route
 
         self.__parent_routes: dict = {}
         self.__initialize_routes()
@@ -85,7 +86,7 @@ class Router:
         return None
 
     # Gets the parameters that are included in a route path
-    def __route_params(self, route_path: str) -> dict:
+    def __route_params(self, route_path: str) -> Optional[dict]:
         path_template = self.__template_from_path(route_path)
 
         if path_template:
@@ -132,7 +133,8 @@ class Router:
 
     # Change the current page's body to the current route's body
     def __present_body(self, target_route: Route):
-        # TODO: Find a way to pass the view arguments to the view, or pass the navigation bar to the page instead of the view
+        # TODO: Find a way to pass the view arguments to the view, or pass the navigation bar to the page instead of
+        #  the view
         target_view: View = self.__page.views[-1]
 
         self.__copy_properties(target_route.view(), target_view)
@@ -162,7 +164,8 @@ class Router:
 
         target_route.route_data = None
 
-    def __copy_properties(self, source: View, target: View):
+    @staticmethod
+    def __copy_properties(source: View, target: View):
         target.vertical_alignment = source.vertical_alignment
         target.horizontal_alignment = source.horizontal_alignment
         target.padding = source.padding

@@ -1,13 +1,15 @@
 from flet import Page, View, Control, Column
 
+from typing import Optional
+
 
 class Route:
     def __init__(self):
-        self.page: Page = None
-        self.path: str = None
+        self.page: Optional[Page] = None
+        self.path: Optional[str] = None
 
-        self.route_params: dict = None
-        self.route_data: dict = None
+        self.route_params: Optional[dict] = None
+        self.route_data: Optional[dict] = None
 
     def pop(self):
         pass
