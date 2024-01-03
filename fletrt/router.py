@@ -6,6 +6,8 @@ from fletrt.templates import NotFound
 
 from typing import Optional
 
+from fletrt.utils import get_navigation_destinations
+
 
 class Router:
 
@@ -43,6 +45,9 @@ class Router:
             # before the subpages are rendered
             if isinstance(route, NavigationRoute):
                 dependant = route.destinations
+
+                if not dependant:
+                    dependant = get_navigation_destinations(route.path, route.navigation_bar)
 
                 for dependant_route in dependant:
                     self.__parent_routes[dependant_route] = route.path

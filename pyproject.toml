@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "fletrt"
-version = "0.0.3.post1"
+version = "0.0.3.post2"
 description = "Simple routing for the Flet framework."
 authors = ["PedroG022"]
 readme = "README.md"
