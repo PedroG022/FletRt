@@ -3,7 +3,6 @@ from flet import RouteChangeEvent, TemplateRoute
 
 from fletrt import Route, NavigationRoute
 from fletrt.templates import NotFound
-from fletrt.utils import get_navigation_destinations
 
 from typing import Optional
 
@@ -43,7 +42,7 @@ class Router:
             # the NavigationRoute, where the parent view must be rendered
             # before the subpages are rendered
             if isinstance(route, NavigationRoute):
-                dependant = get_navigation_destinations(route.path, route.navigation_bar)
+                dependant = route.destinations
 
                 for dependant_route in dependant:
                     self.__parent_routes[dependant_route] = route.path
@@ -156,7 +155,7 @@ class Router:
         self.__copy_properties(target_route.view(), self.__page.views[-1])
 
         # Gets the navigation bar target index
-        dependant = get_navigation_destinations(root_route.path, root_route.navigation_bar)
+        dependant = root_route.destinations
         index = dependant.index(target_route_path)
 
         self.__page.views[-1].navigation_bar.selected_index = index
@@ -190,7 +189,7 @@ class Router:
         if target_route_path in self.__parent_routes.values():
             target_route: NavigationRoute
 
-            destinations = get_navigation_destinations(target_route_path, target_route.navigation_bar)
+            destinations = target_route.destinations
             first_route = destinations[0]
 
             self.__page.go(first_route)
