@@ -54,8 +54,13 @@ class Router:
 
     # Alternative to the page.views.pop function
     def __route_pop(self):
-        last_route = self.__past_routes()[-2]
-        self.__page.go(last_route)
+        path_components = [item for item in self.__past_routes()[:-1] if item != '/']
+        path = ''.join(path_components)
+
+        if path == '':
+            path = '/'
+
+        self.__page.go(path)
 
     # Wrapper for the page.go function
     def __route_go(self, route_path: str, route_data: dict = None):
