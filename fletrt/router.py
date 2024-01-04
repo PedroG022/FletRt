@@ -1,8 +1,10 @@
 from flet import Page, View
 from flet import RouteChangeEvent, TemplateRoute
 
-from fletrt import Route, NavigationRoute
-from fletrt.templates import NotFound
+from .route import Route
+from .navigation_route import NavigationRoute
+
+from .templates.not_found import NotFound
 
 from typing import Optional
 
@@ -64,10 +66,7 @@ class Router:
 
     # Wrapper for the page.go function
     def __route_go(self, route_path: str, route_data: dict = None):
-        template_path = route_path
-
-        if self.__route_match_template(route_path):
-            template_path = self.__template_from_path(route_path)
+        template_path = self.__get_route(route_path)[0]
 
         target_route: Route = self.__routes_dict[template_path]
         target_route.route_data = route_data
@@ -100,7 +99,7 @@ class Router:
 
         if path_template:
             template_route_components: list = path_template.split('/')
-            route_path_components = [component for component in self.__page.route.split('/')]
+            route_path_components = [component for component in route_path.split('/')]
 
             templates = {
                 template_name[1:]: template_route_components.index(template_name)
@@ -120,9 +119,14 @@ class Router:
     def __get_route(self, route_path: str) -> (str, dict):
         params = None
 
-        if self.__route_match_template(self.__page.route):
-            route_path = self.__template_from_path(self.__page.route)
-            params = self.__route_params(self.__page.route)
+        # Verify if an exact match is available, ignoring params
+        if route_path in self.__route_paths:
+            return route_path, params
+
+        if self.__route_match_template(route_path):
+            route_path_copy = route_path
+            route_path = self.__template_from_path(route_path_copy)
+            params = self.__route_params(route_path_copy)
 
         if route_path not in self.__route_paths:
             return None, None
