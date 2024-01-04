@@ -175,6 +175,7 @@ class Router:
         target.padding = source.padding
         target.auto_scroll = source.auto_scroll
         target.bgcolor = source.bgcolor
+        target.floating_action_button = source.floating_action_button
 
     # Wrapper for the route change event, that allows passing data to the target page
     def __on_route_change(self, route_change_event: RouteChangeEvent):
