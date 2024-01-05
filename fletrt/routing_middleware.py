@@ -5,10 +5,10 @@ class RoutingMiddleware:
     source_route: str
 
     def __init__(self, page: Page):
-        self.__page = page
+        self.page = page
 
     def redirect(self, target_route):
-        self.__page.go(target_route)
+        self.page.go(target_route)
         return False
 
     def prevent(self):
