@@ -1,21 +1,34 @@
+from typing import Optional
+
 from flet import Page, View
 from flet import RouteChangeEvent, TemplateRoute
 
-from .route import Route
-from .navigation_route import NavigationRoute
-from .templates.not_found import NotFound
-
 from fletrt.utils import get_navigation_destinations
-
-from typing import Optional
+from .navigation_route import NavigationRoute
+from .route import Route
+from .routing_middleware import RoutingMiddleware
+from .templates.not_found import NotFound
 
 
 class Router:
 
     # Initialize the router
-    def __init__(self, page: Page, routes: dict, not_found_route: Route = NotFound(), redirect_not_found: bool = True):
+    def __init__(self,
+                 page: Page,
+                 routes: dict,
+                 not_found_route: Route = NotFound(),
+                 redirect_not_found: bool = True,
+                 routing_middleware: type[RoutingMiddleware] = None):
+
+        # Initialize the router's variables
         self.__page: Page = page
         self.__redirect_not_found = redirect_not_found
+        self.__current_route = self.__page.route
+        self.__routing_middleware: Optional[RoutingMiddleware] = None
+
+        # If available, instantiate the routing middleware
+        if routing_middleware:
+            self.__routing_middleware: RoutingMiddleware = routing_middleware(self.__page)
 
         # Intercepts not found pages
         routes['/404'] = not_found_route
@@ -155,6 +168,7 @@ class Router:
         self.__page.views[-1].navigation_bar.selected_index = index
         self.__page.update()
 
+    # Copies properties from one view to another
     @staticmethod
     def __copy_properties(source: View, target: View):
         target.vertical_alignment = source.vertical_alignment
@@ -166,8 +180,23 @@ class Router:
 
     # Wrapper for the route change event
     def __on_route_change(self, route_change_event: RouteChangeEvent):
+
+        # Verify if a RoutingMiddleware is available, and if it is,
+        # it gets executed before any logic. If the method before_route_change
+        # returns false, then no logic will be executed at all.
+        if self.__routing_middleware:
+            self.__routing_middleware.source_route = self.__current_route
+            result = self.__routing_middleware.before_route_change(self.__current_route, route_change_event.route)
+
+            if not result:
+                return
+
+        self.__current_route = self.__page.route
+
+        # Verify the existence of the target route and also get possible parameters
         target_route_path, target_route_params = self.__get_route(route_change_event.route)
 
+        # If it does not exist, the 404 route will either be redirected to or 'presented'
         if not target_route_path:
             if self.__redirect_not_found:
                 self.__page.go('/404')
@@ -175,6 +204,7 @@ class Router:
                 self.__present_route(self.__routes_dict['/404'])
             return
 
+        # Get the route object from the dict
         target_route: Route = self.__routes_dict.get(target_route_path)
 
         # Checks if the target route has been initialized.
