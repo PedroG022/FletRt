@@ -3,12 +3,11 @@ from flet import RouteChangeEvent, TemplateRoute
 
 from .route import Route
 from .navigation_route import NavigationRoute
-
 from .templates.not_found import NotFound
 
-from typing import Optional
-
 from fletrt.utils import get_navigation_destinations
+
+from typing import Optional
 
 
 class Router:
@@ -65,13 +64,7 @@ class Router:
         self.__page.go(path)
 
     # Wrapper for the page.go function
-    def __route_go(self, route_path: str, route_data: dict = None):
-        template_path = self.__get_route(route_path)[0]
-
-        target_route: Route = self.__routes_dict[template_path]
-        target_route.route_data = route_data
-        self.__routes_dict[route_path] = target_route
-
+    def __route_go(self, route_path: str):
         self.__page.go(route_path)
 
     def __route_match_template(self, route_path: str) -> bool:
@@ -139,23 +132,9 @@ class Router:
         self.__page.views.clear()
 
         target_route_view: View = target_route.view()
-        target_route.route_data = None
 
         self.__page.views.append(target_route_view)
         self.__page.update()
-
-    # Change the current page's body to the current route's body
-    def __present_body(self, target_route: Route):
-        # TODO: Find a way to pass the view arguments to the view, or pass the navigation bar to the page instead of
-        #  the view
-        target_view: View = self.__page.views[-1]
-
-        self.__copy_properties(target_route.view(), target_view)
-
-        target_view.controls = target_route.view().controls
-        self.__page.update()
-
-        target_route.route_data = None
 
     def __present_navigation_route(self, target_route: Route):
         target_route_path = target_route.path
@@ -175,8 +154,6 @@ class Router:
         self.__page.views[-1].navigation_bar.selected_index = index
         self.__page.update()
 
-        target_route.route_data = None
-
     @staticmethod
     def __copy_properties(source: View, target: View):
         target.vertical_alignment = source.vertical_alignment
@@ -186,7 +163,7 @@ class Router:
         target.bgcolor = source.bgcolor
         target.floating_action_button = source.floating_action_button
 
-    # Wrapper for the route change event, that allows passing data to the target page
+    # Wrapper for the route change event
     def __on_route_change(self, route_change_event: RouteChangeEvent):
         target_route_path, target_route_params = self.__get_route(route_change_event.route)
 
@@ -214,12 +191,6 @@ class Router:
         # If not, it will render the page normally
         if target_route_path not in self.__parent_routes.keys():
             self.__present_route(target_route)
-            return
-
-        # Check if the root navigation route was already rendered. If it is,
-        # just the body contents will be updated.
-        if target_route.route_data and target_route.route_data.get('keep'):
-            self.__present_body(target_route)
             return
 
         # Renders the NavigationRoute

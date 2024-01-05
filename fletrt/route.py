@@ -9,7 +9,6 @@ class Route:
         self.path: Optional[str] = None
 
         self.route_params: Optional[dict] = None
-        self.route_data: Optional[dict] = None
 
     def floating_action_button(self) -> FloatingActionButton:
         pass
