@@ -14,9 +14,9 @@ def main(page: ft.Page):
         '/home': Home(),
         '/home/:content': Content(),
         '/settings': Settings(),
-    })
+    }, redirect_not_found=False)
 
     router.install()
 
 
-ft.app(target=main, view=ft.WEB_BROWSER, port=40444)
+ft.app(target=main, view=ft.WEB_BROWSER, port=40445)

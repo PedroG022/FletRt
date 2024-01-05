@@ -13,8 +13,9 @@ from typing import Optional
 class Router:
 
     # Initialize the router
-    def __init__(self, page: Page, routes: dict, not_found_route: Route = NotFound()):
+    def __init__(self, page: Page, routes: dict, not_found_route: Route = NotFound(), redirect_not_found: bool = True):
         self.__page: Page = page
+        self.__redirect_not_found = redirect_not_found
 
         # Intercepts not found pages
         routes['/404'] = not_found_route
@@ -168,7 +169,10 @@ class Router:
         target_route_path, target_route_params = self.__get_route(route_change_event.route)
 
         if not target_route_path:
-            self.__page.go('/404')
+            if self.__redirect_not_found:
+                self.__page.go('/404')
+            else:
+                self.__present_route(self.__routes_dict['/404'])
             return
 
         target_route: Route = self.__routes_dict.get(target_route_path)
