@@ -177,6 +177,7 @@ class Router:
         target.auto_scroll = source.auto_scroll
         target.bgcolor = source.bgcolor
         target.floating_action_button = source.floating_action_button
+        target.appbar = source.appbar
 
     # Wrapper for the route change event
     def __on_route_change(self, route_change_event: RouteChangeEvent):

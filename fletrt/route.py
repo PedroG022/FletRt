@@ -1,6 +1,6 @@
-from flet import Page, View, Control, Column, FloatingActionButton
-
 from typing import Optional
+
+from flet import Page, View, Control, Column, FloatingActionButton, AppBar
 
 
 class Route:
@@ -11,6 +11,9 @@ class Route:
         self.route_params: Optional[dict] = None
 
     def floating_action_button(self) -> FloatingActionButton:
+        pass
+
+    def app_bar(self) -> AppBar:
         pass
 
     def pop(self):
@@ -28,5 +31,6 @@ class Route:
             controls=[
                 self.body()
             ],
-            floating_action_button=self.floating_action_button()
+            floating_action_button=self.floating_action_button(),
+            appbar=self.app_bar()
         )
