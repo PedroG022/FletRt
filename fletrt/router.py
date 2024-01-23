@@ -174,10 +174,15 @@ class Router:
         target.vertical_alignment = source.vertical_alignment
         target.horizontal_alignment = source.horizontal_alignment
         target.padding = source.padding
+        target.spacing = source.spacing
+
         target.auto_scroll = source.auto_scroll
         target.bgcolor = source.bgcolor
         target.floating_action_button = source.floating_action_button
         target.appbar = source.appbar
+
+        target.scroll = source.scroll
+        target.on_scroll_interval = source.on_scroll_interval
 
     # Wrapper for the route change event
     def __on_route_change(self, route_change_event: RouteChangeEvent):
