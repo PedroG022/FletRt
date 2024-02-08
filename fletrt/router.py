@@ -1,19 +1,34 @@
+from typing import Optional
+
 from flet import Page, View
 from flet import RouteChangeEvent, TemplateRoute
 
-from fletrt import Route, NavigationRoute
-from fletrt.templates import NotFound
-
-from typing import Optional
-
 from fletrt.utils import get_navigation_destinations
+from .navigation_route import NavigationRoute
+from .route import Route
+from .routing_middleware import RoutingMiddleware
+from .templates.not_found import NotFound
 
 
 class Router:
 
     # Initialize the router
-    def __init__(self, page: Page, routes: dict, not_found_route: Route = NotFound()):
+    def __init__(self,
+                 page: Page,
+                 routes: dict,
+                 not_found_route: Route = NotFound(),
+                 redirect_not_found: bool = True,
+                 routing_middleware: type[RoutingMiddleware] = None):
+
+        # Initialize the router's variables
         self.__page: Page = page
+        self.__redirect_not_found = redirect_not_found
+        self.__current_route = self.__page.route
+        self.__routing_middleware: Optional[RoutingMiddleware] = None
+
+        # If available, instantiate the routing middleware
+        if routing_middleware:
+            self.__routing_middleware: RoutingMiddleware = routing_middleware(self.__page)
 
         # Intercepts not found pages
         routes['/404'] = not_found_route
@@ -54,20 +69,16 @@ class Router:
 
     # Alternative to the page.views.pop function
     def __route_pop(self):
-        last_route = self.__past_routes()[-2]
-        self.__page.go(last_route)
+        path_components = [item for item in self.__past_routes()[:-1] if item != '/']
+        path = ''.join(path_components)
+
+        if path == '':
+            path = '/'
+
+        self.__page.go(path)
 
     # Wrapper for the page.go function
-    def __route_go(self, route_path: str, route_data: dict = None):
-        template_path = route_path
-
-        if self.__route_match_template(route_path):
-            template_path = self.__template_from_path(route_path)
-
-        target_route: Route = self.__routes_dict[template_path]
-        target_route.route_data = route_data
-        self.__routes_dict[route_path] = target_route
-
+    def __route_go(self, route_path: str):
         self.__page.go(route_path)
 
     def __route_match_template(self, route_path: str) -> bool:
@@ -95,7 +106,7 @@ class Router:
 
         if path_template:
             template_route_components: list = path_template.split('/')
-            route_path_components = [component for component in self.__page.route.split('/')]
+            route_path_components = [component for component in route_path.split('/')]
 
             templates = {
                 template_name[1:]: template_route_components.index(template_name)
@@ -115,9 +126,14 @@ class Router:
     def __get_route(self, route_path: str) -> (str, dict):
         params = None
 
-        if self.__route_match_template(self.__page.route):
-            route_path = self.__template_from_path(self.__page.route)
-            params = self.__route_params(self.__page.route)
+        # Verify if an exact match is available, ignoring params
+        if route_path in self.__route_paths:
+            return route_path, params
+
+        if self.__route_match_template(route_path):
+            route_path_copy = route_path
+            route_path = self.__template_from_path(route_path_copy)
+            params = self.__route_params(route_path_copy)
 
         if route_path not in self.__route_paths:
             return None, None
@@ -130,23 +146,9 @@ class Router:
         self.__page.views.clear()
 
         target_route_view: View = target_route.view()
-        target_route.route_data = None
 
         self.__page.views.append(target_route_view)
         self.__page.update()
-
-    # Change the current page's body to the current route's body
-    def __present_body(self, target_route: Route):
-        # TODO: Find a way to pass the view arguments to the view, or pass the navigation bar to the page instead of
-        #  the view
-        target_view: View = self.__page.views[-1]
-
-        self.__copy_properties(target_route.view(), target_view)
-
-        target_view.controls = target_route.view().controls
-        self.__page.update()
-
-        target_route.route_data = None
 
     def __present_navigation_route(self, target_route: Route):
         target_route_path = target_route.path
@@ -166,24 +168,49 @@ class Router:
         self.__page.views[-1].navigation_bar.selected_index = index
         self.__page.update()
 
-        target_route.route_data = None
-
+    # Copies properties from one view to another
     @staticmethod
     def __copy_properties(source: View, target: View):
         target.vertical_alignment = source.vertical_alignment
         target.horizontal_alignment = source.horizontal_alignment
         target.padding = source.padding
+        target.spacing = source.spacing
+
         target.auto_scroll = source.auto_scroll
         target.bgcolor = source.bgcolor
+        target.floating_action_button = source.floating_action_button
+        target.appbar = source.appbar
 
-    # Wrapper for the route change event, that allows passing data to the target page
+        target.scroll = source.scroll
+        target.on_scroll_interval = source.on_scroll_interval
+
+    # Wrapper for the route change event
     def __on_route_change(self, route_change_event: RouteChangeEvent):
+
+        # Verify if a RoutingMiddleware is available, and if it is,
+        # it gets executed before any logic. If the method before_route_change
+        # returns false, then no logic will be executed at all.
+        if self.__routing_middleware:
+            self.__routing_middleware.source_route = self.__current_route
+            result = self.__routing_middleware.before_route_change(self.__current_route, route_change_event.route)
+
+            if not result:
+                return
+
+        self.__current_route = self.__page.route
+
+        # Verify the existence of the target route and also get possible parameters
         target_route_path, target_route_params = self.__get_route(route_change_event.route)
 
+        # If it does not exist, the 404 route will either be redirected to or 'presented'
         if not target_route_path:
-            self.__page.go('/404')
+            if self.__redirect_not_found:
+                self.__page.go('/404')
+            else:
+                self.__present_route(self.__routes_dict['/404'])
             return
 
+        # Get the route object from the dict
         target_route: Route = self.__routes_dict.get(target_route_path)
 
         # Checks if the target route has been initialized.
@@ -204,12 +231,6 @@ class Router:
         # If not, it will render the page normally
         if target_route_path not in self.__parent_routes.keys():
             self.__present_route(target_route)
-            return
-
-        # Check if the root navigation route was already rendered. If it is,
-        # just the body contents will be updated.
-        if target_route.route_data and target_route.route_data.get('keep'):
-            self.__present_body(target_route)
             return
 
         # Renders the NavigationRoute

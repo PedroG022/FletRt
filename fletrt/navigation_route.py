@@ -1,9 +1,6 @@
-from flet_core import View
+from flet import NavigationBar, ControlEvent, View
 
 from fletrt import Route
-
-from flet import NavigationBar, ControlEvent
-
 from fletrt.utils import get_navigation_destinations
 
 from typing import Optional
@@ -21,7 +18,7 @@ class NavigationRoute(Route):
 
     def on_navigation_bar_change(self, event: ControlEvent, destinations: list):
         route_path = destinations[int(event.data)]
-        self.go(route_path, {'keep': True})
+        self.go(route_path)
 
     def view(self) -> View:
         base = super().view()
