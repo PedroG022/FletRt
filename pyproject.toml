@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "fletrt"
-version = "0.0.3.post3"
+version = "0.0.4"
 description = "Simple routing for the Flet framework."
 authors = ["PedroG022"]
 readme = "README.md"
@@ -10,7 +10,7 @@ keywords = ["flet", "routing"]
 
 [tool.poetry.dependencies]
 python = "^3.7"
-flet = "^0.18.0"
+flet = "^0.19.0"
 
 
 [tool.poetry.group.dev.dependencies]
